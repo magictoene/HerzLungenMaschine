@@ -16,20 +16,16 @@ app = Dash(__name__)
 list_of_subjects = []
 subj_numbers = []
 number_of_subjects = 0
+file_extension = ''
 
-folder_current = os.path.dirname(__file__) 
-print(folder_current)
-folder_input_data = os.path.join(folder_current, "input_data")
-for file in os.listdir(folder_input_data):
-    
-    if file.endswith(".csv"):
-        number_of_subjects += 1
-        file_name = os.path.join(folder_input_data, file)
-        print(file_name)
-        list_of_subjects.append(ut.Subject(file_name))
+file_extension = 'csv'
+file_paths = ut.get_Path(file_extension) # Get filepaths of every .csv file in input_data
 
+for i in file_paths:
+	list_of_subjects.append(ut.Subject(i)) # Create object of class Subject 
+	number_of_subjects += 1
 
-df = list_of_subjects[0].subject_data
+df = list_of_subjects[0].subject_data # Default value shown on dashboard (Subject 1)
 
 
 for i in range(number_of_subjects):
@@ -45,10 +41,10 @@ fig1= go.Figure()
 fig2= go.Figure()
 fig3= go.Figure()
 
-fig0 = px.line(df, x="Time (s)", y = "SpO2 (%)")
-fig1 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
-fig2 = px.line(df, x="Time (s)", y = "Temp (C)")
-fig3 = px.line(df, x="Time (s)", y = "Blood Flow (ml/s)")
+fig0 = px.line(df, x="Time (s)", y = data_names[0]) #Sp02 (%)
+fig1 = px.line(df, x="Time (s)", y = data_names[1]) #Blood Flow (ml/s)
+fig2 = px.line(df, x="Time (s)", y = data_names[2]) #Temp (C)
+fig3 = px.line(df, x="Time (s)", y = data_names[1]) #Blood Flow (ml/s)
 
 app.layout = html.Div(children=[
     html.H1(children='Cardiopulmonary Bypass Dashboard'),
@@ -64,7 +60,7 @@ app.layout = html.Div(children=[
     ),
 
     html.Div([
-        dcc.Dropdown(options = subj_numbers, placeholder='Select a subject', value='1', id='subject-dropdown'),
+        dcc.Dropdown(options = subj_numbers, placeholder='Select a subject', value='20221', id='subject-dropdown'),
     html.Div(id='dd-output-container')
     ],
         style={"width": "15%"}
@@ -94,6 +90,8 @@ app.layout = html.Div(children=[
         figure=fig3
     )
 ])
+
+
 ### Callback Functions ###
 ## Graph Update Callback
 @app.callback(
@@ -105,9 +103,14 @@ app.layout = html.Div(children=[
     Input('checklist-algo','value')
 )
 def update_figure(value, algorithm_checkmarks):
+    
+    if value == None:
+        value = subj_numbers[0]
+    
     print("Current Subject: ",value)
     print("current checked checkmarks are: ", algorithm_checkmarks)
-    ts = list_of_subjects[int(value)-1].subject_data
+
+    ts = list_of_subjects[int(value)-20221].subject_data
     #SpO2
     fig0 = px.line(ts, x="Time (s)", y = data_names[0])
     # Blood Flow
@@ -129,10 +132,14 @@ def update_figure(value, algorithm_checkmarks):
 )
 def bloodflow_figure(value, bloodflow_checkmarks):
     
+    if value == None:
+        value = subj_numbers[0]
+
     ## Calculate Moving Average: Aufgabe 2
     print(bloodflow_checkmarks)
-    bf = list_of_subjects[int(value)-1].subject_data
-    fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s)")
+
+    bf = list_of_subjects[int(value)-20221].subject_data
+    fig3 = px.line(bf, x="Time (s)", y= data_names[1])
 
 
     return fig3

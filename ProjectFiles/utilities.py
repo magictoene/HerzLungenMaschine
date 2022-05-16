@@ -5,6 +5,30 @@ import pandas as pd
 from datetime import datetime
 import numpy as np
 import re
+import os
+
+# Universal Methods
+
+def get_Path(extension):
+
+    '''
+    Finds and returns file paths based on the input file extension
+	    Arguments:
+		    extension: file extension of the desired files (e.g. '.csv', '.txt')
+	    Returns:
+		    path_container: array of file paths 
+    '''
+
+    path_container = []
+    folder_current = os.path.dirname(__file__) 
+    folder_input_data = os.path.join(folder_current, "input_data")
+    for file in os.listdir(folder_input_data):
+        
+        if file.endswith("." + extension):
+            file_name = os.path.join(folder_input_data, file)
+            path_container.append(file_name)
+            
+    return path_container
 
 # Classes 
 
@@ -19,9 +43,10 @@ class Subject(): #erstellt Klasse "Subject"
         self.subject_data = self.subject_data.interpolate(method='quadratic', axis=0) #interpolate (hier knackpunkt) erstellt Datenpunkte zwischen den Daten aus "__f"
         #interpolate(method='linear', axis=0) stellt eine lineare verbindung her 
         __splited_id = re.findall(r'\d+',file_name)      
+        # print(__splited_id)
         self.subject_id = ''.join(__splited_id)
         self.names = self.subject_data.columns.values.tolist()
-        self.time = self.subject_data["Time (s)"]        
+        self.time = self.subject_data["Time (s)"]
         self.spO2 = self.subject_data["SpO2 (%)"]
         self.temp = self.subject_data["Temp (C)"]
         self.blood_flow = self.subject_data["Blood Flow (ml/s)"]
@@ -30,7 +55,6 @@ class Subject(): #erstellt Klasse "Subject"
 
 
         
-
 ### Aufgabe 2: Datenverarbeitung ###
 
 def calculate_CMA(df,n):
