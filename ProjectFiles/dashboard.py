@@ -1,10 +1,14 @@
 from cmath import nan
 from tempfile import SpooledTemporaryFile
+from tkinter import OFF
+from unicodedata import name
 import dash
 from dash import Dash, html, dcc, Output, Input, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+from pyparsing import And
+from scipy.__config__ import show
 import utilities as ut
 import numpy as np
 import os
@@ -154,17 +158,67 @@ def update_figure(value, algorithm_checkmarks):
 )
 def bloodflow_figure(value, bloodflow_checkmarks):
 
-    if value == None:
+    if value == None: # if subject-dropdown is empty, then show subject 1 per default
         value = subj_numbers[0]
 
     ## Calculate Moving Average: Aufgabe 2
-    print(bloodflow_checkmarks)
+    #print(bloodflow_checkmarks)
 
     bf = list_of_subjects[int(value)-1].subject_data
-    fig3 = px.line(bf, x="Time (s)", y= data_names[1])
+    fig3 = px.line(bf, x="Time (s)", y= data_names[1])  
 
+    #Mean value 
+    avg = bf.mean() #calculate average values for all columns of subject data
+    x = [0, 480] #set boundaries for x values (required later to depict mean value)
+    y = avg[data_names[1]] #mean value of Blood Flow (ml/s)
+
+
+    ## Aufgabe 2 bzw. 3
+    def show_limits(fig):
+                
+        # Calculating upper and lower limit
+        y_oben = y*1.15 # 115% of blood flow mean value
+        y_unten = y*0.85 # 85% of blood flow mean value
+
+        fig.add_trace(go.Scatter(x = x, y = [y_oben, y_oben], mode = 'lines', name = 'Upper Limit', line_color='red')) #adding trace of upper limit to fig3
+        fig.add_trace(go.Scatter(x = x, y = [y_unten, y_unten], mode = 'lines', name = 'Lower Limit', line_color='red')) #adding trace of lower limit to fig3
+
+        return fig
+
+
+    if bloodflow_checkmarks is not None: #eliminating iteration over NoneType Object
+
+        if 'CMA' in bloodflow_checkmarks and 'SMA' not in bloodflow_checkmarks: #only if CMA is checked
+            
+            bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf[data_names[1]],2) #call utilities function to calculate Cumulative Moving Average
+            fig_CMA = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - CMA") #update fig3 to show Cumulative moving Average
+
+            if 'Show Limits' in bloodflow_checkmarks: #Check if Limits is checked
+                fig3 = show_limits(fig_CMA) #call show_limits to add traces to current figure
+            
+            fig3 = fig_CMA #save edited figure with or without traces to fig3
+
+
+        if 'SMA' in bloodflow_checkmarks and 'CMA' not in bloodflow_checkmarks: #only if SMA is checked
+
+            bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf[data_names[1]],5) 
+            fig_SMA = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - SMA") #save plot of edited figure
+
+            if 'Show Limits' in bloodflow_checkmarks:
+                fig3 = show_limits(fig_SMA) #call show_limits to add traces to current figure
+            
+            fig3 = fig_SMA #save edited figure with or without traces to fig3
+
+
+        if bloodflow_checkmarks == ['Show Limits']: #check if Show Limits is the only checked box
+
+            fig3 = show_limits(fig3) #save figure with added limit traces
+        
+
+    fig3.add_trace(go.Scatter(x = x, y = [y, y], mode = 'lines', name = 'Mittelwert', line_color='green')) #adding trace of mean value to fig3
 
     return fig3
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
