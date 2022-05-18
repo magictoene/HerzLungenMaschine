@@ -5,6 +5,7 @@ from dash import Dash, html, dcc, Output, Input, dash_table
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+from pyparsing import And
 import utilities as ut
 import numpy as np
 import os
@@ -158,10 +159,22 @@ def bloodflow_figure(value, bloodflow_checkmarks):
         value = subj_numbers[0]
 
     ## Calculate Moving Average: Aufgabe 2
-    print(bloodflow_checkmarks)
+    #print(bloodflow_checkmarks)
 
     bf = list_of_subjects[int(value)-1].subject_data
     fig3 = px.line(bf, x="Time (s)", y= data_names[1])
+
+
+    if bloodflow_checkmarks is not None:
+
+        if bloodflow_checkmarks == ["CMA"]:
+            bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf[data_names[1]],2) 
+            fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - CMA")
+
+        if bloodflow_checkmarks == ["SMA"]:
+            bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf[data_names[1]],5) 
+            fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - SMA")
+        
 
 
     return fig3
