@@ -1,5 +1,6 @@
 from cmath import nan
 from tempfile import SpooledTemporaryFile
+from unicodedata import name
 import dash
 from dash import Dash, html, dcc, Output, Input, dash_table
 import plotly.express as px
@@ -155,27 +156,45 @@ def update_figure(value, algorithm_checkmarks):
 )
 def bloodflow_figure(value, bloodflow_checkmarks):
 
-    if value == None:
+    if value == None: # if subject-dropdown is empty, then show subject 1 per default
         value = subj_numbers[0]
 
     ## Calculate Moving Average: Aufgabe 2
     #print(bloodflow_checkmarks)
 
     bf = list_of_subjects[int(value)-1].subject_data
-    fig3 = px.line(bf, x="Time (s)", y= data_names[1])
+    fig3 = px.line(bf, x="Time (s)", y= data_names[1])  
+
+    #Mean value 
+    avg = bf.mean() #calculate average values for all columns of subject data
+    x = [0, 480] #set boundaries for x values (required later to depict mean value)
+    y = avg[data_names[1]] #mean value of Blood Flow (ml/s)
 
 
-    if bloodflow_checkmarks is not None:
+    if bloodflow_checkmarks is not None: #eliminating iteration over NoneType Object
 
-        if bloodflow_checkmarks == ["CMA"]:
-            bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf[data_names[1]],2) 
-            fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - CMA")
+        if bloodflow_checkmarks == ['CMA']: #only if CMA is checked
+            
+            bf["Blood Flow (ml/s) - CMA"] = ut.calculate_CMA(bf[data_names[1]],2) #call utilities function to calculate Cumulative Moving Average
+            fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - CMA") #update fig3 to show Cumulative moving Average
 
-        if bloodflow_checkmarks == ["SMA"]:
+        if 'SMA' in bloodflow_checkmarks and 'CMA' not in bloodflow_checkmarks: #only if SMA is checked
+
             bf["Blood Flow (ml/s) - SMA"] = ut.calculate_SMA(bf[data_names[1]],5) 
             fig3 = px.line(bf, x="Time (s)", y="Blood Flow (ml/s) - SMA")
-        
 
+            if 'Show Limits' in bloodflow_checkmarks: #if Show Limits is also checked
+                
+                # Calculating upper and lower limit
+                y_oben = y*1.15 # 115% of blood flow mean value
+                y_unten = y*0.85 # 85% of blood flow mean value
+
+
+                fig3.add_trace(go.Scatter(x = x, y = [y_oben, y_oben], mode = 'lines', name = 'Upper Limit')) #adding trace of upper limit to fig3
+                fig3.add_trace(go.Scatter(x = x, y = [y_unten, y_unten], mode = 'lines', name = 'Lower Limit')) #adding trace of lower limit to fig3
+
+    
+    fig3.add_trace(go.Scatter(x = x, y = [y, y], mode = 'lines', name = 'Mittelwert')) #adding trace of mean value to fig3
 
     return fig3
 
