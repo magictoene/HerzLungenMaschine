@@ -252,3 +252,8 @@ def bloodflow_figure(value, bloodflow_checkmarks):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
+
+## Aufgabe 3.4
+# Simple Moving Average: n=4; wurde so ausgelegt, dass bei Bestimmung der Alerts nicht darauf geachtet werden muss, ob Werte bis zu 3 Sekunden hintereinander ungültig sind.
+# Ist der Durchschnittswert des 4 Sekunden Intervalls nämlich nicht höher/niedriger als das erlaubte Limit von 15%, muss auch kein Alarm ausgelöst werden.
