@@ -15,8 +15,14 @@ import numpy as np
 import os
 import re
 
-app = Dash(__name__)
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
+app = Dash(__name__, external_stylesheets=external_stylesheets)
+
+colors = {
+    'background': '#FAEBD7',
+    'text': '#000000'
+}
 
 list_of_subjects = []
 subj_numbers = []
@@ -52,17 +58,18 @@ fig1 = px.line(df, x="Time (s)", y = data_names[1]) #Blood Flow (ml/s)
 fig2 = px.line(df, x="Time (s)", y = data_names[2]) #Temp (C)
 fig3 = px.line(df, x="Time (s)", y = data_names[1]) #Blood Flow (ml/s)
 
-app.layout = html.Div(children=[
+app.layout = html.Div(style={'backgroundColor': colors['background']},children=[
     html.H1(children='Cardiopulmonary Bypass Dashboard'),
 
-    html.Div(children='''
-        Hier könnten Informationen zum Patienten stehen....
-    '''),
+    html.Div(children=''' Hier könnten Informationen zum Patienten stehen...''', style={
+        'textAlign': 'center',
+        'color': colors['text']
+     }),
 
     dcc.Checklist(
-    id= 'checklist-algo',
-    options=algorithm_names,
-    inline=False
+        id= 'checklist-algo',
+        options=algorithm_names,
+        inline=False
     ),
 
     html.Div([
@@ -72,32 +79,45 @@ app.layout = html.Div(children=[
         style={"width": "15%"}
     ),
 
-    dcc.Graph(
-        id='dash-graph0',
-        figure=fig0
-    ),
+   html.Div([
+       html.Div([
+            dcc.Graph(
+                 id='dash-graph0',
+                 figure=fig0
+            ),
+       ], className='six columns'),
 
-    dcc.Graph(
-        id='dash-graph1',
-        figure=fig1
-    ),
-    dcc.Graph(
-        id='dash-graph2',
-        figure=fig2
-    ),
+       html.Div([
+            dcc.Graph(
+                 id='dash-graph1',
+                 figure=fig1
+            ),
+       ], className='six columns'),
+
+    ], className='row'),
+
+    html.Div([
+            dcc.Graph(
+                 id='dash-graph2',
+                 figure=fig2,
+                 style={"margin-top": "50px"}
+            ),
+       ], className='row'),
+        
 
     dcc.Checklist(
         id= 'checklist-bloodflow',
         options=blood_flow_functions,
         inline=False
     ),
-    ## Textarea added for Exercise 3.3
+
     dcc.Textarea(
         id='text-area1',
         #readOnly=True,
         disabled=True, #disabled --> User cannot interact with textarea
         style={"width": "100%", 'height': "auto"}
     ),
+    
     dcc.Graph(
         id='dash-graph3',
         figure=fig3

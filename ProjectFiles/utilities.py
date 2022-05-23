@@ -59,3 +59,6 @@ def calculate_CMA(df,n):
 
 def calculate_SMA(df,n):
     return df.rolling(n).mean()
+    ## Aufgabe 4.1 
+    # Vor allem bei tendenziell konstanten Signalen sinnvoll (Puls etc.). 
+    # Sobald Grenzwertmessungen von Bedeutung sind, ist SMA sehr unpraktisch (z.B. Wechselspannnung)
